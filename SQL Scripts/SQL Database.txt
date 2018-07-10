@@ -1,13 +1,63 @@
-/* ==============================================================================================
-Version 1.0
+ /* ==============================================================================================
+Version 1.1
 
 Property of Raghav Khator
 
 Tutee Database 
 
-DATE = 7/3/18  
+DATE = 7/5/18  
 
 ============================================================================================== */
+
+
+-- Stores information about volunteers
+CREATE Table Volunteer 
+(
+VOLUNTEER_ID decimal(8) NOT NULL IDENTITY(1,1) PRIMARY KEY,
+VOLUNTEER_FIRST_NAME varchar(50) NOT NULL,
+VOLUNTEER_LAST_NAME varchar(50) NOT NULL,
+VOLUNTEER_EMAIL varchar(50) NOT NULL,
+VOLUNTEER_NUMBER varchar(50) NOT NULL
+);
+
+-- Stores information about the different types of programs (after school or teacher helper)
+-- Will be used to diffentiate wich front end the school will see and which logic will run
+CREATE Table Programs 
+(
+PROGRAM_ID decimal(8) NOT NULL IDENTITY(0,1) PRIMARY KEY,
+PROGRAM_TYPE varchar(50) NOT NULL UNIQUE,
+);
+
+-- Stores information about H2O manager that a volunteer can access to contact if there is a problem
+-- Volunteers only able to access through the schools table
+CREATE Table Managers 
+(
+MANAGER_ID decimal(8) NOT NULL IDENTITY(0,1) PRIMARY KEY,
+MANAGER_FIRST_NAME varchar(50) NOT NULL,
+MANAGER_LAST_NAME varchar(50) NOT NULL,
+MANAGER_EMAIL varchar(50) NOT NULL,
+MANAGER_NUMBER varchar(50) NOT NULL
+);
+
+-- Stores the information about the schools we partner with
+CREATE Table Schools
+(
+SCHOOL_ID decimal(8) NOT NULL IDENTITY(0,1) PRIMARY KEY,
+SCHOOL_NAME varchar(50)  NOT NULL UNIQUE,
+SCHOOL_LEVEL varchar(50)  NOT NULL,
+PAIRED_SCHOOL_ID decimal(8)  NOT NULL,
+PROGRAM_ID decimal(8) NOT NULL,
+COUNSELOR_FIRST_NAME varchar(50) NOT NULL,
+COUNSELOR_LAST_NAME varchar(50) NOT NULL,
+COUNSELOR_EMAIL varchar(50) NOT NULL,
+COUNSELOR_NUMBER varchar(50) NOT NULL,
+MANAGER_ID decimal(8)  NOT NULL,
+FOREIGN KEY (PAIRED_SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
+FOREIGN KEY (PROGRAM_ID) REFERENCES Programs(PROGRAM_ID),
+FOREIGN KEY (MANAGER_ID) REFERENCES Managers(MANAGER_ID),
+CHECK (SCHOOL_LEVEL='Middle School' or SCHOOL_LEVEL='Elementary School'),
+CHECK (PROGRAM_ID = 0 OR PAIRED_SCHOOL_ID!=0) -- Basically says that if there is a program ID that isnt zero which means no program, there should be a partner school
+);
 
 -- Stores information about tutee that a volunteer can access
 CREATE Table Tutee 
@@ -16,7 +66,7 @@ TUTEE_STUDENT_ID decimal(8) NOT NULL,
 TUTEE_FIRST_NAME varchar(50) NOT NULL,
 TUTEE_LAST_NAME varchar(50) NOT NULL,
 GRADE int NOT NULL,
-SCHOOL varchar(50)  NOT NULL,  
+SCHOOL_ID decimal(8)   NOT NULL,  
 PARENT_FIRST_NAME varchar(50) NOT NULL,
 PARENT_LAST_NAME varchar(50) NOT NULL,
 PARENT_EMAIL varchar(50) NOT NULL,
@@ -24,7 +74,10 @@ PARENT_NUMBER varchar(50) NOT NULL,
 TEACHER_FIRST_NAME varchar(50) NOT NULL,
 TEACHER_LAST_NAME varchar(50) NOT NULL,
 TEACHER_EMAIL varchar(50) NOT NULL,
-TEACHER_NUMBER varchar(50) NOT NULL
+TEACHER_NUMBER varchar(50) NOT NULL,
+PRIMARY KEY (TUTEE_STUDENT_ID),
+FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
+CHECK (grade<7)
 );
 
 -- Stores information about tutor that a volunteer can access
@@ -35,63 +88,29 @@ TUTOR_FIRST_NAME varchar(50) NOT NULL,
 TUTOR_LAST_NAME varchar(50) NOT NULL,
 TUTOR_EMAIL varchar(50) NOT NULL,
 GRADE int NOT NULL,
-SCHOOL varchar(50)  NOT NULL,  
+SCHOOL_ID decimal(8)  NOT NULL,  
 PARENT_FIRST_NAME varchar(50) NOT NULL,
 PARENT_LAST_NAME varchar(50) NOT NULL,
 PARENT_EMAIL varchar(50) NOT NULL,
-PARENT_NUMBER varchar(50) NOT NULL
+PARENT_NUMBER varchar(50) NOT NULL,
+PRIMARY KEY (TUTOR_STUDENT_ID),
+FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
+CHECK (grade>6)
 );
 
 -- Stores the review a tutor writes at the end of every session
 CREATE Table Review 
 (
-REVIEW_ID decimal(8) NOT NULL,
+REVIEW_ID decimal(8) NOT NULL IDENTITY(1,1) PRIMARY KEY,
 TUTEE_STUDENT_ID decimal(8) NOT NULL,
 TUTOR_STUDENT_ID decimal(8) NOT NULL,
-SCHOOL_ID decimal(50)  NOT NULL,  
-DATE_OF_SESSION datetime  NOT NULL,  
-TOPICS varchar(50)  NOT NULL,
-STRENGTHS varchar(50)  NOT NULL,
-WEAKNESSES varchar(50)  NOT NULL,
-EXTRA_COMMENTS varchar(50)  NOT NULL
+SCHOOL_ID decimal(8)  NOT NULL,  
+DATE_OF_SESSION datetime  NOT NULL DEFAULT getdate(),  
+TOPICS varchar(250)  NOT NULL,
+STRENGTHS varchar(250)  NOT NULL,
+WEAKNESSES varchar(250)  NOT NULL,
+EXTRA_COMMENTS varchar(250)  NOT NULL DEFAULT 'None',
+FOREIGN KEY (TUTEE_STUDENT_ID) REFERENCES Tutee(TUTEE_STUDENT_ID),
+FOREIGN KEY (TUTOR_STUDENT_ID) REFERENCES Tutor(TUTOR_STUDENT_ID),
+FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 );
-
--- Stores the information about the schools we partner with
-CREATE Table Schools
-(
-SCHOOL_ID decimal(8) NOT NULL,
-SCHOOL_NAME varchar(50)  NOT NULL,
-SCHOOL_LEVEL varchar(50)  NOT NULL,
-PAIRED_SCHOOL_ID decimal(8)  NOT NULL,
-PROGRAM_ID decimal(8) NOT NULL,
-COUNSELOR_FIRST_NAME varchar(50) NOT NULL,
-COUNSELOR_LAST_NAME varchar(50) NOT NULL,
-COUNSELOR_EMAIL varchar(50) NOT NULL,
-COUNSELOR_NUMBER varchar(50) NOT NULL,
-MANAGER_ID decimal(8)  NOT NULL
-);
-
-CREATE Table Volunteer 
-(
-VOLUNTEER_ID decimal(8) NOT NULL,
-VOLUNTEER_FIRST_NAME varchar(50) NOT NULL,
-VOLUNTEER_LAST_NAME varchar(50) NOT NULL,
-VOLUNTEER_EMAIL varchar(50) NOT NULL,
-VOLUNTEER_NUMBER varchar(50) NOT NULL
-);
-
-CREATE Table Programs 
-(
-VOLUNTEER_ID decimal(8) NOT NULL,
-VOLUNTEER_TYPE varchar(50)
-);
-
-CREATE Table Managers 
-(
-MANAGER_ID decimal(8) NOT NULL,
-MANAGER_FIRST_NAME varchar(50) NOT NULL,
-MANAGER_LAST_NAME varchar(50) NOT NULL,
-MANAGER_EMAIL varchar(50) NOT NULL,
-MANAGER_NUMBER varchar(50) NOT NULL
-);
-

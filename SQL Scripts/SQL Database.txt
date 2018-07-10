@@ -1,11 +1,11 @@
- /* ==============================================================================================
-Version 1.2
+/* ==============================================================================================
+Version 2.0
 
 Property of Raghav Khator
 
 Tutee Database 
 
-DATE = 7/5/18  3:43 PM
+DATE = 7/9/18  7:46 AM
 
 ============================================================================================== */
 
@@ -14,67 +14,59 @@ DATE = 7/5/18  3:43 PM
 CREATE Table Volunteer 
 (
 VOLUNTEER_ID decimal(8) NOT NULL IDENTITY(1,1) PRIMARY KEY,
-VOLUNTEER_FIRST_NAME varchar(50) NOT NULL,
-VOLUNTEER_LAST_NAME varchar(50) NOT NULL,
-VOLUNTEER_EMAIL varchar(50) NOT NULL,
-VOLUNTEER_NUMBER varchar(50) NOT NULL
+VOLUNTEER_FIRST_NAME varchar(255) NOT NULL,
+VOLUNTEER_LAST_NAME varchar(255) NOT NULL,
+VOLUNTEER_EMAIL varchar(255) NOT NULL,
+VOLUNTEER_NUMBER varchar(255) NOT NULL,
+VOLUNTEER_ROLE varchar(255) NOT NULL,
+VOLUNTEER_USER varchar(255) NOT NULL UNIQUE,
+VOLUNTEER_PASS varchar(255) NOT NULL
+
 );
 
 -- Stores information about the different types of programs (after school or teacher helper)
 -- Will be used to diffentiate wich front end the school will see and which logic will run
 CREATE Table Programs 
 (
-PROGRAM_ID decimal(8) NOT NULL IDENTITY(0,1) PRIMARY KEY,
-PROGRAM_TYPE varchar(50) NOT NULL UNIQUE,
-);
-
--- Stores information about H2O manager that a volunteer can access to contact if there is a problem
--- Volunteers only able to access through the schools table
-CREATE Table Managers 
-(
-MANAGER_ID decimal(8) NOT NULL IDENTITY(0,1) PRIMARY KEY,
-MANAGER_FIRST_NAME varchar(50) NOT NULL,
-MANAGER_LAST_NAME varchar(50) NOT NULL,
-MANAGER_EMAIL varchar(50) NOT NULL,
-MANAGER_NUMBER varchar(50) NOT NULL
+PROGRAM_ID decimal(8) NOT NULL IDENTITY(1,1) PRIMARY KEY,
+PROGRAM_TYPE varchar(255) NOT NULL UNIQUE,
 );
 
 -- Stores the information about the schools we partner with
 CREATE Table Schools
 (
-SCHOOL_ID decimal(8) NOT NULL IDENTITY(0,1) PRIMARY KEY,
-SCHOOL_NAME varchar(50)  NOT NULL UNIQUE,
-SCHOOL_LEVEL varchar(50)  NOT NULL,
+SCHOOL_ID decimal(8) NOT NULL IDENTITY(1,1) PRIMARY KEY,
+SCHOOL_NAME varchar(255)  NOT NULL UNIQUE,
+SCHOOL_LEVEL varchar(255)  NOT NULL,
 PAIRED_SCHOOL_ID decimal(8)  NOT NULL,
 PROGRAM_ID decimal(8) NOT NULL,
-COUNSELOR_FIRST_NAME varchar(50) NOT NULL,
-COUNSELOR_LAST_NAME varchar(50) NOT NULL,
-COUNSELOR_EMAIL varchar(50) NOT NULL,
-COUNSELOR_NUMBER varchar(50) NOT NULL,
-MANAGER_ID decimal(8)  NOT NULL,
+COUNSELOR_FIRST_NAME varchar(255) NOT NULL,
+COUNSELOR_LAST_NAME varchar(255) NOT NULL,
+COUNSELOR_EMAIL varchar(255) NOT NULL,
+COUNSELOR_NUMBER varchar(255) NOT NULL,
+MANAGER_ID decimal(8)  NOT NULL, -- This must be a H2O Manager so put this as a check
 FOREIGN KEY (PAIRED_SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 FOREIGN KEY (PROGRAM_ID) REFERENCES Programs(PROGRAM_ID),
-FOREIGN KEY (MANAGER_ID) REFERENCES Managers(MANAGER_ID),
-CHECK (SCHOOL_LEVEL='Middle School' or SCHOOL_LEVEL='Elementary School'),
-CHECK (PROGRAM_ID = 0 OR PAIRED_SCHOOL_ID!=0) -- Basically says that if there is a program ID that isnt zero which means no program, there should be a partner school
+FOREIGN KEY (MANAGER_ID) REFERENCES Volunteer(VOLUNTEER_ID),
+CHECK (SCHOOL_LEVEL='Middle School' or SCHOOL_LEVEL='Elementary School')
 );
 
 -- Stores information about tutee that a volunteer can access
 CREATE Table Tutee 
 (
 TUTEE_STUDENT_ID decimal(8) NOT NULL,
-TUTEE_FIRST_NAME varchar(50) NOT NULL,
-TUTEE_LAST_NAME varchar(50) NOT NULL,
+TUTEE_FIRST_NAME varchar(255) NOT NULL,
+TUTEE_LAST_NAME varchar(255) NOT NULL,
 GRADE int NOT NULL,
 SCHOOL_ID decimal(8)   NOT NULL,  
-PARENT_FIRST_NAME varchar(50) NOT NULL,
-PARENT_LAST_NAME varchar(50) NOT NULL,
-PARENT_EMAIL varchar(50) NOT NULL,
-PARENT_NUMBER varchar(50) NOT NULL,
-TEACHER_FIRST_NAME varchar(50) NOT NULL,
-TEACHER_LAST_NAME varchar(50) NOT NULL,
-TEACHER_EMAIL varchar(50) NOT NULL,
-TEACHER_NUMBER varchar(50) NOT NULL,
+PARENT_FIRST_NAME varchar(255) NOT NULL,
+PARENT_LAST_NAME varchar(255) NOT NULL,
+PARENT_EMAIL varchar(255) NOT NULL,
+PARENT_NUMBER varchar(255) NOT NULL,
+TEACHER_FIRST_NAME varchar(255) NOT NULL,
+TEACHER_LAST_NAME varchar(255) NOT NULL,
+TEACHER_EMAIL varchar(255) NOT NULL,
+TEACHER_NUMBER varchar(255) NOT NULL,
 PRIMARY KEY (TUTEE_STUDENT_ID),
 FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 CHECK (grade<7)
@@ -84,15 +76,15 @@ CHECK (grade<7)
 CREATE Table Tutor 
 (
 TUTOR_STUDENT_ID decimal(8) NOT NULL,
-TUTOR_FIRST_NAME varchar(50) NOT NULL,
-TUTOR_LAST_NAME varchar(50) NOT NULL,
-TUTOR_EMAIL varchar(50) NOT NULL,
+TUTOR_FIRST_NAME varchar(255) NOT NULL,
+TUTOR_LAST_NAME varchar(255) NOT NULL,
+TUTOR_EMAIL varchar(255) NOT NULL,
 GRADE int NOT NULL,
 SCHOOL_ID decimal(8)  NOT NULL,  
-PARENT_FIRST_NAME varchar(50) NOT NULL,
-PARENT_LAST_NAME varchar(50) NOT NULL,
-PARENT_EMAIL varchar(50) NOT NULL,
-PARENT_NUMBER varchar(50) NOT NULL,
+PARENT_FIRST_NAME varchar(255) NOT NULL,
+PARENT_LAST_NAME varchar(255) NOT NULL,
+PARENT_EMAIL varchar(255) NOT NULL,
+PARENT_NUMBER varchar(255) NOT NULL,
 PRIMARY KEY (TUTOR_STUDENT_ID),
 FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 CHECK (grade>6)
@@ -104,7 +96,7 @@ CREATE Table Review
 REVIEW_ID decimal(8) NOT NULL IDENTITY(1,1) PRIMARY KEY,
 TUTEE_STUDENT_ID decimal(8) NOT NULL,
 TUTOR_STUDENT_ID decimal(8) NOT NULL,
-SCHOOL_ID decimal(8)  NOT NULL,  
+MIDDLE_SCHOOL_ID decimal(8)  NOT NULL,  
 DATE_OF_SESSION datetime  NOT NULL DEFAULT getdate(),  
 TOPICS varchar(250)  NOT NULL,
 STRENGTHS varchar(250)  NOT NULL,
@@ -112,7 +104,7 @@ WEAKNESSES varchar(250)  NOT NULL,
 EXTRA_COMMENTS varchar(250)  NOT NULL DEFAULT 'None',
 FOREIGN KEY (TUTEE_STUDENT_ID) REFERENCES Tutee(TUTEE_STUDENT_ID),
 FOREIGN KEY (TUTOR_STUDENT_ID) REFERENCES Tutor(TUTOR_STUDENT_ID),
-FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
+FOREIGN KEY (MIDDLE_SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 );
 
 GO
@@ -129,7 +121,7 @@ GO
 
 GO
 CREATE PROCEDURE GetAllChildrenSchools -- Needs to be made better just in case MS entered doesn't exist
-@MiddleSchool varchar(50)
+@MiddleSchool varchar(255)
 AS 
 DECLARE @msID int
 SELECT @msID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @MiddleSchool
@@ -145,7 +137,7 @@ GO
 
 GO
 CREATE PROCEDURE GetAllMiddleSchoolsOfProgram -- 
-@program varchar(50)
+@program varchar(255)
 AS
 DECLARE @pID int
 SELECT @pID = PROGRAM_ID FROM Programs WHERE PROGRAM_TYPE = @program 
@@ -154,7 +146,7 @@ GO
 
 GO
 CREATE PROCEDURE GetGradeDistributionForSchool --Have to check if what they entered is a ES not a MS
-@school varchar(50)
+@school varchar(255)
 AS
 DECLARE @esID int
 SELECT @esID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @school

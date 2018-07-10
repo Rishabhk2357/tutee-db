@@ -1,11 +1,11 @@
 /* ==============================================================================================
-Version 2.0
+Version 2.1
 
 Property of Raghav Khator
 
 Tutee Database 
 
-DATE = 7/9/18  7:46 AM
+DATE = 7/9/18  8:50 AM
 
 ============================================================================================== */
 
@@ -98,14 +98,20 @@ TUTEE_STUDENT_ID decimal(8) NOT NULL,
 TUTOR_STUDENT_ID decimal(8) NOT NULL,
 MIDDLE_SCHOOL_ID decimal(8)  NOT NULL,  
 DATE_OF_SESSION datetime  NOT NULL DEFAULT getdate(),  
-TOPICS varchar(250)  NOT NULL,
-STRENGTHS varchar(250)  NOT NULL,
-WEAKNESSES varchar(250)  NOT NULL,
-EXTRA_COMMENTS varchar(250)  NOT NULL DEFAULT 'None',
+SUBJECTS varchar(255) NOT NULL,
+TOPICS varchar(255)  NOT NULL,
+STRENGTHS varchar(255)  NOT NULL,
+WEAKNESSES varchar(255)  NOT NULL,
+EXTRA_COMMENTS varchar(2047)  NOT NULL DEFAULT 'None',
 FOREIGN KEY (TUTEE_STUDENT_ID) REFERENCES Tutee(TUTEE_STUDENT_ID),
 FOREIGN KEY (TUTOR_STUDENT_ID) REFERENCES Tutor(TUTOR_STUDENT_ID),
 FOREIGN KEY (MIDDLE_SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 );
+
+ /* ==============================================================================================
+ADMIN FUNCTIONS
+============================================================================================== */
+
 
 GO
 CREATE PROCEDURE GetAllMiddleSchools
@@ -120,7 +126,7 @@ SELECT * FROM Schools WHERE Schools.SCHOOL_LEVEL = 'Elementary School'
 GO
 
 GO
-CREATE PROCEDURE GetAllChildrenSchools -- Needs to be made better just in case MS entered doesn't exist
+CREATE PROCEDURE GetAllChildrenSchools -- Get all a middle school's paired elementary schools. Needs to be made better just in case MS entered doesn't exist
 @MiddleSchool varchar(255)
 AS 
 DECLARE @msID int
@@ -129,14 +135,14 @@ SELECT * FROM Schools WHERE Schools.PAIRED_SCHOOL_ID = @msID
 GO
 
 GO
-CREATE PROCEDURE GetAllMiddleSchoolsOfProgramID
+CREATE PROCEDURE GetAllMiddleSchoolsOfProgramID -- Get all MS following the same model using model ID
 @programID int
 AS 
 SELECT * FROM Schools WHERE Schools.PROGRAM_ID = @programID
 GO
 
 GO
-CREATE PROCEDURE GetAllMiddleSchoolsOfProgram -- 
+CREATE PROCEDURE GetAllMiddleSchoolsOfProgram -- Get all MS following the same model using model name
 @program varchar(255)
 AS
 DECLARE @pID int
@@ -151,4 +157,189 @@ AS
 DECLARE @esID int
 SELECT @esID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @school
 SELECT GRADE, count(GRADE) FROM Tutee WHERE SCHOOL_ID = @esID GROUP BY GRADE ORDER BY GRADE 
+GO
+
+GO
+CREATE PROCEDURE GetTopicDistributionForSchool --Have to check if what they entered is a ES not a MS
+@school varchar(255)
+AS
+--Work In Progress
+--Make Subjects and Topic fixed amounts like 2 columns each. Topic 1, Topic 2, Subject 1, Subject 2
+GO
+
+GO
+CREATE PROCEDURE GetSubjectDistributionForSchool --Have to check if what they entered is a ES not a MS
+@school varchar(255)
+AS
+--Work In Progress
+--Make Subjects and Topic fixed amounts like 2 columns each. Topic 1, Topic 2, Subject 1, Subject 2
+GO
+ /* ==============================================================================================
+USER FUNCTIONS
+============================================================================================== */
+GO
+CREATE PROCEDURE GetTuteeID --Get the ID for a Tutee; Multiple matches might be returned
+@school varchar(255), @firstname varchar(255), @lastname varchar(255)
+AS
+DECLARE @esID int
+SELECT @esID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @school
+SELECT TUTEE_STUDENT_ID, TUTEE_FIRST_NAME, TUTEE_LAST_NAME FROM Tutee WHERE @esID=SCHOOL_ID and @firstname=TUTEE_FIRST_NAME and @lastname=TUTEE_LAST_NAME
+GO
+
+GO
+CREATE PROCEDURE GetTutorID --Get the ID for a Tutor; Multiple matches might be returned
+@school varchar(255), @firstname varchar(255), @lastname varchar(255)
+AS
+DECLARE @msID int
+SELECT @msID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @school
+SELECT TUTOR_STUDENT_ID, TUTOR_FIRST_NAME, TUTOR_LAST_NAME FROM Tutor WHERE @msID=SCHOOL_ID and @firstname=TUTOR_FIRST_NAME and @lastname=TUTOR_LAST_NAME
+GO
+
+GO
+CREATE PROCEDURE GetReviewsForTutee --Get Reviews For Tutee using ID ordered by date
+@ID decimal(8)
+AS
+SELECT * FROM Review WHERE TUTEE_STUDENT_ID=@ID ORDER BY DATE_OF_SESSION -- Add a join that puts the Tutee and Tutor's name into the table
+GO
+
+GO
+CREATE PROCEDURE GetReviewsByTutor --Get Reviews done by tutor using ID ordered by date
+@ID decimal(8)
+AS
+SELECT * FROM Review WHERE TUTOR_STUDENT_ID=@ID ORDER BY DATE_OF_SESSION -- Add a join that puts the Tutee and Tutor's name into the table
+GO
+
+GO
+CREATE PROCEDURE GetSchoolContacts --Get school contacts
+@schoolName varchar(255)
+AS
+SELECT COUNSELOR_FIRST_NAME, COUNSELOR_FIRST_NAME, COUNSELOR_LAST_NAME, COUNSELOR_NUMBER FROM Schools WHERE SCHOOL_NAME=@schoolName -- Add a join that puts the Manager's name into the table
+GO
+
+GO
+CREATE PROCEDURE TuteeAttendence 
+@ID decimal(8)
+AS
+SELECT DATE_OF_SESSION, SUBJECTS, TOPICS FROM Review WHERE TUTEE_STUDENT_ID=@ID -- Add a join that puts the Tutor's name into the table
+GO
+
+GO
+CREATE PROCEDURE TutorAttendence 
+@ID decimal(8)
+AS
+SELECT DATE_OF_SESSION, SUBJECTS, TOPICS FROM Review WHERE TUTOR_STUDENT_ID=@ID -- Add a join that puts the Tutee's name into the table
+GO
+
+GO
+CREATE PROCEDURE SchoolsTuteesAttendance -- Gets the count for the number of days attended by a tutee
+@schoolName varchar(255)
+AS
+-- Need to make a review table joined with Tutee which is joined with school to add Tutee Name and School name. The group by Tutee ID Add a join that puts the Tutee's name into the table
+GO
+
+GO
+CREATE PROCEDURE SchoolsTutorsAttendance -- Gets the count for the number of days attended by a tutor
+@schoolName varchar(255)
+AS
+Select Review.TUTOR_STUDENT_ID, count(Review.TUTOR_STUDENT_ID) 
+FROM (Review INNER JOIN Tutor on Review.TUTOR_STUDENT_ID = Tutor.TUTOR_STUDENT_ID) 
+INNER JOIN Schools ON Review.MIDDLE_SCHOOL_ID=Schools.SCHOOL_ID 
+WHERE Schools.SCHOOL_NAME = @schoolName
+GROUP BY Review.TUTOR_STUDENT_ID
+GO
+
+
+GO
+CREATE PROCEDURE SchoolsTuteeTeacherInfo --  Gets all of a school's tutees' teachers info
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT TEACHER_FIRST_NAME, TEACHER_LAST_NAME, TEACHER_EMAIL, TEACHER_NUMBER from Tutee where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE SchoolsTuteeTeacherEmailList -- Gets all of a school's tutees' teachers emails
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT TEACHER_EMAIL from Tutee where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE SchoolsTuteeParentInfo --  Gets all of a school's tutees' parents info
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT PARENT_FIRST_NAME, PARENT_LAST_NAME, PARENT_EMAIL, PARENT_NUMBER from Tutee where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE SchoolsTuteeParentEmailList  -- Gets all of a school's tutees' parents emails
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT PARENT_EMAIL from Tutee where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE SchoolsTutorParentInfo --  Gets all of a school's tutees' parents info
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT PARENT_FIRST_NAME, PARENT_LAST_NAME, PARENT_EMAIL, PARENT_NUMBER from Tutor where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE SchoolsTutorParentEmailList  -- Gets all of a school's tutees' parents emails
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT PARENT_EMAIL from Tutor where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE TuteeContactInfo  -- Gets contact info for a tutee
+@ID decimal(8)
+AS
+SELECT * from Tutee where TUTEE_STUDENT_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE TutorContactInfo  -- Gets contact info for a tutor
+@ID decimal(8)
+AS
+SELECT * from Tutor where TUTOR_STUDENT_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE AllTutorsOfAMiddleSchool  -- Gets a list of tutors of a middle school
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT TUTOR_FIRST_NAME, TUTOR_LAST_NAME, TUTOR_STUDENT_ID from Tutor where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE AllTuteesForASchool  -- Gets a list of tutees for an elementary school
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT TUTEE_FIRST_NAME, TUTEE_LAST_NAME, TUTEE_STUDENT_ID from Tutee where SCHOOL_ID=@ID
+GO
+
+GO
+CREATE PROCEDURE TutorEmailListForASchool  -- Gets a list of tutor email list for a school
+@schoolName varchar(255)
+AS
+DECLARE @ID int
+SELECT @ID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @schoolName
+SELECT TUTOR_EMAIL from Tutor where SCHOOL_ID=@ID
 GO

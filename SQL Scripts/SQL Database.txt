@@ -1,0 +1,97 @@
+/* ==============================================================================================
+Version 1.0
+
+Property of Raghav Khator
+
+Tutee Database 
+
+DATE = 7/3/18  
+
+============================================================================================== */
+
+-- Stores information about tutee that a volunteer can access
+CREATE Table Tutee 
+(
+TUTEE_STUDENT_ID decimal(8) NOT NULL,
+TUTEE_FIRST_NAME varchar(50) NOT NULL,
+TUTEE_LAST_NAME varchar(50) NOT NULL,
+GRADE int NOT NULL,
+SCHOOL varchar(50)  NOT NULL,  
+PARENT_FIRST_NAME varchar(50) NOT NULL,
+PARENT_LAST_NAME varchar(50) NOT NULL,
+PARENT_EMAIL varchar(50) NOT NULL,
+PARENT_NUMBER varchar(50) NOT NULL,
+TEACHER_FIRST_NAME varchar(50) NOT NULL,
+TEACHER_LAST_NAME varchar(50) NOT NULL,
+TEACHER_EMAIL varchar(50) NOT NULL,
+TEACHER_NUMBER varchar(50) NOT NULL
+);
+
+-- Stores information about tutor that a volunteer can access
+CREATE Table Tutor 
+(
+TUTOR_STUDENT_ID decimal(8) NOT NULL,
+TUTOR_FIRST_NAME varchar(50) NOT NULL,
+TUTOR_LAST_NAME varchar(50) NOT NULL,
+TUTOR_EMAIL varchar(50) NOT NULL,
+GRADE int NOT NULL,
+SCHOOL varchar(50)  NOT NULL,  
+PARENT_FIRST_NAME varchar(50) NOT NULL,
+PARENT_LAST_NAME varchar(50) NOT NULL,
+PARENT_EMAIL varchar(50) NOT NULL,
+PARENT_NUMBER varchar(50) NOT NULL
+);
+
+-- Stores the review a tutor writes at the end of every session
+CREATE Table Review 
+(
+REVIEW_ID decimal(8) NOT NULL,
+TUTEE_STUDENT_ID decimal(8) NOT NULL,
+TUTOR_STUDENT_ID decimal(8) NOT NULL,
+SCHOOL_ID decimal(50)  NOT NULL,  
+DATE_OF_SESSION datetime  NOT NULL,  
+TOPICS varchar(50)  NOT NULL,
+STRENGTHS varchar(50)  NOT NULL,
+WEAKNESSES varchar(50)  NOT NULL,
+EXTRA_COMMENTS varchar(50)  NOT NULL
+);
+
+-- Stores the information about the schools we partner with
+CREATE Table Schools
+(
+SCHOOL_ID decimal(8) NOT NULL,
+SCHOOL_NAME varchar(50)  NOT NULL,
+SCHOOL_LEVEL varchar(50)  NOT NULL,
+PAIRED_SCHOOL_ID decimal(8)  NOT NULL,
+PROGRAM_ID decimal(8) NOT NULL,
+COUNSELOR_FIRST_NAME varchar(50) NOT NULL,
+COUNSELOR_LAST_NAME varchar(50) NOT NULL,
+COUNSELOR_EMAIL varchar(50) NOT NULL,
+COUNSELOR_NUMBER varchar(50) NOT NULL,
+MANAGER_ID decimal(8)  NOT NULL
+);
+
+CREATE Table Volunteer 
+(
+VOLUNTEER_ID decimal(8) NOT NULL,
+VOLUNTEER_FIRST_NAME varchar(50) NOT NULL,
+VOLUNTEER_LAST_NAME varchar(50) NOT NULL,
+VOLUNTEER_EMAIL varchar(50) NOT NULL,
+VOLUNTEER_NUMBER varchar(50) NOT NULL
+);
+
+CREATE Table Programs 
+(
+VOLUNTEER_ID decimal(8) NOT NULL,
+VOLUNTEER_TYPE varchar(50)
+);
+
+CREATE Table Managers 
+(
+MANAGER_ID decimal(8) NOT NULL,
+MANAGER_FIRST_NAME varchar(50) NOT NULL,
+MANAGER_LAST_NAME varchar(50) NOT NULL,
+MANAGER_EMAIL varchar(50) NOT NULL,
+MANAGER_NUMBER varchar(50) NOT NULL
+);
+

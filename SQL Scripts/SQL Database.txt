@@ -1,11 +1,11 @@
  /* ==============================================================================================
-Version 1.1
+Version 1.2
 
 Property of Raghav Khator
 
 Tutee Database 
 
-DATE = 7/5/18  
+DATE = 7/5/18  3:43 PM
 
 ============================================================================================== */
 
@@ -114,3 +114,49 @@ FOREIGN KEY (TUTEE_STUDENT_ID) REFERENCES Tutee(TUTEE_STUDENT_ID),
 FOREIGN KEY (TUTOR_STUDENT_ID) REFERENCES Tutor(TUTOR_STUDENT_ID),
 FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
 );
+
+GO
+CREATE PROCEDURE GetAllMiddleSchools
+AS 
+SELECT * FROM Schools WHERE Schools.SCHOOL_LEVEL = 'Middle School'
+GO
+
+GO
+CREATE PROCEDURE GetAllElementarySchools
+AS 
+SELECT * FROM Schools WHERE Schools.SCHOOL_LEVEL = 'Elementary School'
+GO
+
+GO
+CREATE PROCEDURE GetAllChildrenSchools -- Needs to be made better just in case MS entered doesn't exist
+@MiddleSchool varchar(50)
+AS 
+DECLARE @msID int
+SELECT @msID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @MiddleSchool
+SELECT * FROM Schools WHERE Schools.PAIRED_SCHOOL_ID = @msID
+GO
+
+GO
+CREATE PROCEDURE GetAllMiddleSchoolsOfProgramID
+@programID int
+AS 
+SELECT * FROM Schools WHERE Schools.PROGRAM_ID = @programID
+GO
+
+GO
+CREATE PROCEDURE GetAllMiddleSchoolsOfProgram -- 
+@program varchar(50)
+AS
+DECLARE @pID int
+SELECT @pID = PROGRAM_ID FROM Programs WHERE PROGRAM_TYPE = @program 
+SELECT * FROM Schools WHERE Schools.PROGRAM_ID = @pID and SCHOOL_LEVEL = 'Middle School'
+GO
+
+GO
+CREATE PROCEDURE GetGradeDistributionForSchool --Have to check if what they entered is a ES not a MS
+@school varchar(50)
+AS
+DECLARE @esID int
+SELECT @esID = SCHOOL_ID FROM Schools WHERE SCHOOL_NAME = @school
+SELECT GRADE, count(GRADE) FROM Tutee WHERE SCHOOL_ID = @esID GROUP BY GRADE ORDER BY GRADE 
+GO

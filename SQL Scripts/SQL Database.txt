@@ -69,7 +69,7 @@ TEACHER_EMAIL varchar(255) NOT NULL,
 TEACHER_NUMBER varchar(255) NOT NULL,
 PRIMARY KEY (TUTEE_STUDENT_ID),
 FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
-CHECK (grade<7)
+CHECK (0<grade AND grade<7)
 );
 
 -- Stores information about tutor that a volunteer can access
@@ -87,7 +87,7 @@ PARENT_EMAIL varchar(255) NOT NULL,
 PARENT_NUMBER varchar(255) NOT NULL,
 PRIMARY KEY (TUTOR_STUDENT_ID),
 FOREIGN KEY (SCHOOL_ID) REFERENCES Schools(SCHOOL_ID),
-CHECK (grade>6)
+CHECK (9>grade AND grade>6)
 );
 
 -- Stores the review a tutor writes at the end of every session
